@@ -3,6 +3,7 @@ package vc
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"strings"
 	"time"
 
@@ -11,10 +12,12 @@ import (
 
 // DefaultCredentialVerifier provides a comprehensive verifiable credential verifier
 type DefaultCredentialVerifier struct {
-	keyManager    did.KeyManager
-	didResolver   did.MultiResolver
-	jwtProcessor  *JWTCredentialProcessor
+	keyManager     did.KeyManager
+	didResolver    did.MultiResolver
+	jwtProcessor   *JWTCredentialProcessor
 	sdjwtProcessor *SDJWTProcessor
+	schemaValidator *SchemaValidator
+	trustEngine     *TrustFrameworkEngine
 	
 	// Optional status list resolver for credential status checking
 	statusResolver StatusResolver
@@ -34,6 +37,8 @@ func NewDefaultCredentialVerifier(keyManager did.KeyManager, resolver did.MultiR
 	
 	verifier.jwtProcessor = NewJWTCredentialProcessor(keyManager, resolver)
 	verifier.sdjwtProcessor = NewSDJWTProcessor(keyManager, resolver)
+	verifier.schemaValidator = NewSchemaValidator()
+	verifier.trustEngine = NewTrustFrameworkEngine()
 	
 	return verifier
 }
@@ -41,6 +46,21 @@ func NewDefaultCredentialVerifier(keyManager did.KeyManager, resolver did.MultiR
 // SetStatusResolver sets the status resolver for credential status checking
 func (v *DefaultCredentialVerifier) SetStatusResolver(resolver StatusResolver) {
 	v.statusResolver = resolver
+}
+
+// LoadTrustFramework loads a trust framework for policy-based verification
+func (v *DefaultCredentialVerifier) LoadTrustFramework(framework *TrustFramework) error {
+	return v.trustEngine.LoadFramework(framework)
+}
+
+// GetTrustFramework retrieves a loaded trust framework
+func (v *DefaultCredentialVerifier) GetTrustFramework(frameworkID string) (*TrustFramework, error) {
+	return v.trustEngine.GetFramework(frameworkID)
+}
+
+// ListTrustFrameworks returns all loaded trust frameworks
+func (v *DefaultCredentialVerifier) ListTrustFrameworks() []*TrustFramework {
+	return v.trustEngine.ListFrameworks()
 }
 
 // VerifyCredential verifies a verifiable credential in JSON-LD format
@@ -58,6 +78,63 @@ func (v *DefaultCredentialVerifier) VerifyCredential(credential *VerifiableCrede
 			Verified: false,
 			Error:    "structure validation failed: " + err.Error(),
 		}, nil
+	}
+
+	// Validate schema if enabled
+	if options != nil && options.ValidateSchema {
+		schemaResult, err := v.schemaValidator.ValidateCredentialSchema(credential)
+		if err != nil {
+			return &VerificationResult{
+				Verified: false,
+				Error:    "schema validation failed: " + err.Error(),
+			}, nil
+		}
+
+		if !schemaResult.Valid {
+			errors := make([]string, len(schemaResult.Errors))
+			for i, e := range schemaResult.Errors {
+				errors[i] = fmt.Sprintf("%s: %s", e.Field, e.Message)
+			}
+			return &VerificationResult{
+				Verified: false,
+				Error:    "schema validation failed: " + strings.Join(errors, "; "),
+				Details: map[string]interface{}{
+					"schemaErrors": schemaResult.Errors,
+				},
+			}, nil
+		}
+	}
+
+	// Evaluate trust framework policies if specified
+	if options != nil && options.TrustFramework != "" {
+		ctx := context.Background()
+		policyDecision, err := v.trustEngine.EvaluateCredential(ctx, credential, options.TrustFramework)
+		if err != nil {
+			return &VerificationResult{
+				Verified: false,
+				Error:    "trust framework evaluation failed: " + err.Error(),
+			}, nil
+		}
+
+		if policyDecision.Decision == "reject" {
+			return &VerificationResult{
+				Verified: false,
+				Error:    "trust framework policy violation: " + policyDecision.Reason,
+				Details: map[string]interface{}{
+					"policyDecision": policyDecision,
+				},
+			}, nil
+		}
+
+		if policyDecision.Decision == "review" {
+			return &VerificationResult{
+				Verified: false,
+				Error:    "credential requires manual review: " + policyDecision.Reason,
+				Details: map[string]interface{}{
+					"policyDecision": policyDecision,
+				},
+			}, nil
+		}
 	}
 
 	// If it has a JWT representation, verify that instead
