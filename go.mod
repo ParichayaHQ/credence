@@ -4,12 +4,15 @@ go 1.24.1
 
 require (
 	github.com/go-playground/validator/v10 v10.27.0
+	github.com/gorilla/mux v1.8.1
 	github.com/ipfs/go-cid v0.5.0
 	github.com/libp2p/go-libp2p v0.43.0
 	github.com/libp2p/go-libp2p-kad-dht v0.34.0
 	github.com/libp2p/go-libp2p-pubsub v0.14.3
+	github.com/linxGnu/grocksdb v1.10.2
 	github.com/multiformats/go-multiaddr v0.16.1
 	github.com/multiformats/go-multihash v0.2.3
+	github.com/rs/cors v1.11.1
 	github.com/stretchr/testify v1.11.1
 )
 
@@ -31,7 +34,6 @@ require (
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/google/gopacket v1.1.19 // indirect
 	github.com/google/uuid v1.6.0 // indirect
-	github.com/gorilla/mux v1.8.1 // indirect
 	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/hashicorp/golang-lru v1.0.2 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
@@ -57,7 +59,6 @@ require (
 	github.com/libp2p/go-netroute v0.2.2 // indirect
 	github.com/libp2p/go-reuseport v0.4.0 // indirect
 	github.com/libp2p/go-yamux/v5 v5.0.1 // indirect
-	github.com/linxGnu/grocksdb v1.10.2 // indirect
 	github.com/marten-seemann/tcp v0.0.0-20210406111302-dfbc87cc63fd // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/miekg/dns v1.1.68 // indirect
