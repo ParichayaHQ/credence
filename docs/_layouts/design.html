@@ -1,0 +1,44 @@
+---
+layout: default
+---
+
+<div class="design-header">
+  <nav class="breadcrumb">
+    <a href="{{ '/' | relative_url }}">Home</a> 
+    <span>/</span> 
+    <a href="{{ '/designs/' | relative_url }}">Architecture</a> 
+    <span>/</span> 
+    <span>{{ page.title }}</span>
+  </nav>
+</div>
+
+<div class="design-content">
+  {{ content }}
+</div>
+
+{% if page.collection == 'designs' %}
+<div class="design-navigation">
+  <h3>Architecture Documents</h3>
+  <ul>
+    {% for design in site.designs %}
+      {% if design.url != page.url %}
+      <li><a href="{{ design.url | relative_url }}">{{ design.title }}</a></li>
+      {% endif %}
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}
+
+<div class="page-footer">
+  <p>
+    <a href="{{ site.github.repository_url }}/edit/main/docs/{{ page.path }}">
+      📝 Edit this page on GitHub
+    </a>
+  </p>
+  
+  {% if page.date %}
+  <p class="last-updated">
+    Last updated: {{ page.date | date: "%B %d, %Y" }}
+  </p>
+  {% endif %}
+</div>

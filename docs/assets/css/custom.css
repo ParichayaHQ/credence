@@ -1,0 +1,310 @@
+/* Custom styles for Credence Documentation */
+
+/* Grid system for homepage */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
+
+.card {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 1.5rem;
+  transition: box-shadow 0.3s ease;
+}
+
+.card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.card h3 {
+  margin-top: 0;
+  color: #343a40;
+}
+
+.card p {
+  color: #6c757d;
+  margin-bottom: 1rem;
+}
+
+.btn {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  margin: 0.25rem 0.25rem 0.25rem 0;
+  background: #007bff;
+  color: white;
+  text-decoration: none;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  transition: background-color 0.3s ease;
+}
+
+.btn:hover {
+  background: #0056b3;
+  color: white;
+  text-decoration: none;
+}
+
+/* Navigation styles */
+.site-navigation {
+  margin: 2rem 0;
+}
+
+.nav-list {
+  list-style: none;
+  padding: 0;
+}
+
+.nav-item {
+  margin-bottom: 0.5rem;
+}
+
+.nav-link {
+  display: block;
+  padding: 0.5rem 0;
+  color: #007bff;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.nav-link:hover {
+  color: #0056b3;
+  text-decoration: underline;
+}
+
+.nav-item.active > .nav-link {
+  color: #0056b3;
+  font-weight: 600;
+}
+
+.subnav {
+  list-style: none;
+  padding-left: 1rem;
+  margin-top: 0.5rem;
+}
+
+.subnav-item {
+  margin-bottom: 0.25rem;
+}
+
+.subnav-link {
+  display: block;
+  padding: 0.25rem 0;
+  color: #6c757d;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.subnav-link:hover {
+  color: #007bff;
+  text-decoration: underline;
+}
+
+.subnav-item.active > .subnav-link {
+  color: #007bff;
+  font-weight: 500;
+}
+
+/* Guide-specific styles */
+.guide-header {
+  margin-bottom: 2rem;
+}
+
+.breadcrumb {
+  color: #6c757d;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.breadcrumb a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.breadcrumb a:hover {
+  text-decoration: underline;
+}
+
+.breadcrumb span {
+  margin: 0 0.5rem;
+}
+
+.status-banner {
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 2rem;
+  border-left: 4px solid;
+}
+
+.status-banner.draft {
+  background-color: #fff3cd;
+  border-color: #ffc107;
+  color: #856404;
+}
+
+.status-banner.beta {
+  background-color: #cce5ff;
+  border-color: #007bff;
+  color: #004085;
+}
+
+.status-banner.stable {
+  background-color: #d4edda;
+  border-color: #28a745;
+  color: #155724;
+}
+
+.guide-content {
+  line-height: 1.6;
+}
+
+.guide-navigation {
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid #e9ecef;
+}
+
+.guide-navigation h3 {
+  color: #343a40;
+  margin-bottom: 1rem;
+}
+
+.guide-navigation ul {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.5rem;
+}
+
+.guide-navigation li {
+  margin-bottom: 0.5rem;
+}
+
+.guide-navigation a {
+  color: #007bff;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.guide-navigation a:hover {
+  text-decoration: underline;
+}
+
+.page-footer {
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid #e9ecef;
+  font-size: 0.9rem;
+  color: #6c757d;
+}
+
+.page-footer a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.page-footer a:hover {
+  text-decoration: underline;
+}
+
+.last-updated {
+  font-style: italic;
+}
+
+/* Code blocks */
+pre {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 4px;
+  padding: 1rem;
+  overflow-x: auto;
+}
+
+code {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 2px;
+  padding: 0.2rem 0.4rem;
+  font-size: 0.9em;
+}
+
+pre code {
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .guide-navigation ul {
+    grid-template-columns: 1fr;
+  }
+  
+  .wrapper {
+    width: auto;
+    margin: 0;
+  }
+  
+  .header-content {
+    position: static;
+    width: auto;
+  }
+  
+  section {
+    border: none;
+    width: auto;
+  }
+}
+
+/* Mermaid diagrams */
+.mermaid {
+  text-align: center;
+  margin: 2rem 0;
+}
+
+/* Table styles */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+}
+
+table th,
+table td {
+  border: 1px solid #e9ecef;
+  padding: 0.75rem;
+  text-align: left;
+}
+
+table th {
+  background: #f8f9fa;
+  font-weight: 600;
+}
+
+table tbody tr:nth-child(even) {
+  background: #f8f9fa;
+}
+
+/* Alert boxes */
+blockquote {
+  border-left: 4px solid #007bff;
+  background: #f8f9fa;
+  margin: 1rem 0;
+  padding: 1rem 1.5rem;
+}
+
+blockquote p:first-child {
+  margin-top: 0;
+}
+
+blockquote p:last-child {
+  margin-bottom: 0;
+}
