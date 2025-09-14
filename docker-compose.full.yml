@@ -1,0 +1,253 @@
+# Full node deployment with all services
+version: '3.8'
+
+services:
+  # Load Balancer / Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./config/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/ssl/private:ro
+    depends_on:
+      - p2p-gateway
+      - fullnode
+      - scorer
+      - lognode
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+
+  # P2P Gateway - Network communication
+  p2p-gateway:
+    image: credence/p2p-gateway:latest
+    ports:
+      - "4001:4001"  # P2P port (must be externally accessible)
+    volumes:
+      - ./config:/config
+      - ./data/p2p:/data
+      - fullnode-data:/shared-data
+    environment:
+      - CONFIG_PATH=/config/full-node.yml
+      - LOG_LEVEL=info
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 3s
+      start_period: 5s
+      retries: 3
+
+  # Full Node - Complete data storage
+  fullnode:
+    image: credence/fullnode:latest
+    volumes:
+      - ./config:/config
+      - ./data/fullnode:/data
+      - fullnode-data:/shared-data
+    environment:
+      - CONFIG_PATH=/config/full-node.yml
+      - MODE=full
+      - P2P_ENDPOINT=http://p2p-gateway:8080
+      - LOG_LEVEL=info
+    depends_on:
+      p2p-gateway:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8081/health"]
+      interval: 30s
+      timeout: 3s
+      start_period: 10s
+      retries: 3
+
+  # Scorer - Trust score computation
+  scorer:
+    image: credence/scorer:latest
+    volumes:
+      - ./config:/config
+      - ./data/scorer:/data
+    environment:
+      - CONFIG_PATH=/config/full-node.yml
+      - REDIS_URL=redis://redis:6379
+      - LOG_LEVEL=info
+    depends_on:
+      fullnode:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8082/health"]
+      interval: 30s
+      timeout: 3s
+      start_period: 10s
+      retries: 3
+
+  # Log Node - Cryptographic audit trail
+  lognode:
+    image: credence/lognode:latest
+    volumes:
+      - ./config:/config  
+      - ./data/lognode:/data
+    environment:
+      - CONFIG_PATH=/config/full-node.yml
+      - DATABASE_URL=postgres://credence:${POSTGRES_PASSWORD:-secure-password}@postgres/trillian
+      - LOG_LEVEL=info
+    depends_on:
+      fullnode:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8083/health"]
+      interval: 30s
+      timeout: 3s
+      start_period: 10s
+      retries: 3
+
+  # Checkpointor - Consensus participation
+  checkpointor:
+    image: credence/checkpointor:latest
+    volumes:
+      - ./config:/config
+      - ./data/checkpointor:/data
+    environment:
+      - CONFIG_PATH=/config/full-node.yml
+      - LOG_LEVEL=info
+    depends_on:
+      fullnode:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8085/health"]
+      interval: 30s
+      timeout: 3s
+      start_period: 10s
+      retries: 3
+
+  # Optional: Issuer service for credential issuance
+  issuer:
+    image: credence/issuer:latest
+    volumes:
+      - ./config:/config
+      - ./data/issuer:/data
+    environment:
+      - CONFIG_PATH=/config/issuer.yml
+      - LOG_LEVEL=info
+    depends_on:
+      p2p-gateway:
+        condition: service_healthy
+    restart: unless-stopped
+    profiles:
+      - "with-issuer"  # Only start with --profile with-issuer
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8084/health"]
+      interval: 30s
+      timeout: 3s
+      start_period: 5s
+      retries: 3
+
+  # Supporting Services
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes --maxmemory 2gb --maxmemory-policy allkeys-lru
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+
+  postgres:
+    image: postgres:15-alpine
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=trillian
+      - POSTGRES_USER=credence
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-secure-password}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U credence -d trillian"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Monitoring Services
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.enable-lifecycle'
+    restart: unless-stopped
+    profiles:
+      - "with-monitoring"
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./config/grafana:/etc/grafana/provisioning:ro
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    restart: unless-stopped
+    profiles:
+      - "with-monitoring"
+
+  # Log aggregation
+  loki:
+    image: grafana/loki:latest
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./config/loki.yml:/etc/loki/loki.yml:ro
+      - loki-data:/loki
+    command: -config.file=/etc/loki/loki.yml
+    restart: unless-stopped
+    profiles:
+      - "with-monitoring"
+
+  promtail:
+    image: grafana/promtail:latest
+    volumes:
+      - ./config/promtail.yml:/etc/promtail/promtail.yml:ro
+      - /var/log:/var/log:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    command: -config.file=/etc/promtail/promtail.yml
+    restart: unless-stopped
+    profiles:
+      - "with-monitoring"
+
+volumes:
+  fullnode-data:
+  redis-data:
+  postgres-data:
+  prometheus-data:
+  grafana-data:
+  loki-data:
+
+networks:
+  default:
+    name: credence-full
+    driver: bridge

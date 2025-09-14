@@ -1,0 +1,78 @@
+# Light node deployment for network participation
+version: '3.8'
+
+services:
+  # P2P Gateway - Core network participation
+  p2p-gateway:
+    image: credence/p2p-gateway:latest
+    ports:
+      - "4001:4001"  # P2P port (must be accessible externally)
+      - "8080:8080"  # API port (internal)
+    volumes:
+      - ./config:/config
+      - ./data/p2p:/data
+    environment:
+      - CONFIG_PATH=/config/light-node.yml
+      - LOG_LEVEL=info
+      - P2P_PORT=4001
+      - API_PORT=8080
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 3s
+      start_period: 5s
+      retries: 3
+
+  # Full Node (Light Mode) - Recent data storage
+  fullnode:
+    image: credence/fullnode:latest
+    ports:
+      - "8081:8081"  # API port (internal)
+    volumes:
+      - ./config:/config
+      - ./data/fullnode:/data
+    environment:
+      - CONFIG_PATH=/config/light-node.yml
+      - MODE=light
+      - P2P_ENDPOINT=http://p2p-gateway:8080
+      - LOG_LEVEL=info
+      - RETENTION_DAYS=30
+      - MAX_STORAGE_GB=10
+    depends_on:
+      p2p-gateway:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8081/health"]
+      interval: 30s
+      timeout: 3s
+      start_period: 10s
+      retries: 3
+
+  # Optional: Nginx reverse proxy for external access
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./config/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/ssl/private:ro
+    depends_on:
+      - p2p-gateway
+      - fullnode
+    restart: unless-stopped
+    profiles:
+      - "with-nginx"  # Only start with --profile with-nginx
+
+volumes:
+  p2p-data:
+    driver: local
+  fullnode-data:
+    driver: local
+
+networks:
+  default:
+    name: credence-light
+    driver: bridge
