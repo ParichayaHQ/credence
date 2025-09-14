@@ -45,9 +45,21 @@ export class WalletService {
   }
 
   private async doStart(): Promise<void> {
-    console.log('Starting walletd service...');
+    console.log('Connecting to Docker-based walletd service...');
 
-    // Check if binary exists
+    // Skip binary check in development - use Docker service instead
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Development mode: Connecting to Docker wallet service on port', this.config.port);
+      
+      // Wait for Docker service to be ready
+      await this.waitForReady();
+      
+      // Start health checks
+      this.startHealthCheck();
+      return;
+    }
+
+    // Production mode - use local binary
     const binaryPath = this.config.binaryPath!;
     if (!require('fs').existsSync(binaryPath)) {
       throw new Error(`Wallet binary not found at: ${binaryPath}`);
@@ -102,7 +114,7 @@ export class WalletService {
   }
 
   public async stop(): Promise<void> {
-    if (this.isStopping || !this.process) {
+    if (this.isStopping) {
       return;
     }
 
@@ -111,6 +123,12 @@ export class WalletService {
 
     try {
       this.stopHealthCheck();
+
+      // In development mode with Docker, there's no process to kill
+      if (process.env.NODE_ENV === 'development' && !this.process) {
+        console.log('Development mode: Disconnected from Docker wallet service');
+        return;
+      }
 
       // Try graceful shutdown first
       if (this.process && !this.process.killed) {
@@ -147,6 +165,10 @@ export class WalletService {
   }
 
   public isRunning(): boolean {
+    // In development mode with Docker, check if we're connected to the service
+    if (process.env.NODE_ENV === 'development' && !this.process) {
+      return this.healthCheckTimer !== null;
+    }
     return this.process !== null && !this.process.killed;
   }
 

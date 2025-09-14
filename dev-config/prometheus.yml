@@ -1,0 +1,33 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'p2p-gateway'
+    static_configs:
+      - targets: ['p2p-gateway:8080']
+    metrics_path: '/metrics'
+    
+  - job_name: 'fullnode'
+    static_configs:
+      - targets: ['fullnode:8081']
+    metrics_path: '/metrics'
+    
+  - job_name: 'scorer'
+    static_configs:
+      - targets: ['scorer:8082']
+    metrics_path: '/metrics'
+    
+  - job_name: 'lognode'
+    static_configs:
+      - targets: ['lognode:8083']
+    metrics_path: '/metrics'
+    
+  - job_name: 'walletd'
+    static_configs:
+      - targets: ['walletd:8084']
+    metrics_path: '/metrics'
+    
+  - job_name: 'checkpointor'
+    static_configs:
+      - targets: ['checkpointor:8085']
+    metrics_path: '/metrics'
