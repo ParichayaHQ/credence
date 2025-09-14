@@ -76,13 +76,16 @@ Welcome to the Credence ecosystem! Choose your path based on your role and needs
 
 ## 🚀 Quick Start Matrix
 
-| Your Role | Time to Setup | Technical Level | Guide |
-|-----------|---------------|----------------|--------|
-| **End User** | 5 minutes | None | [Wallet Guide](./end-user-wallet.md) |
-| **Light Node Operator** | 30 minutes | Basic | [Light Node](./light-node.md) |
-| **Full Node Operator** | 2-4 hours | Advanced | [Full Node](./full-node.md) |
-| **Credential Issuer** | 1-2 hours | Intermediate | [Service Provider](./service-provider.md) |
-| **App Developer** | 30 minutes | Programming | [Developer Guide](./developer.md) |
+| Your Role | Time to Setup | Technical Level | Guide | Commands |
+|-----------|---------------|----------------|--------|----------|
+| **End User** | 5 minutes | None | [Wallet Guide](./end-user-wallet.md) | [Commands](../../DEPLOYMENT.md#-end-user-wallet-desktop) |
+| **Light Node Operator** | 30 minutes | Basic | [Light Node](./light-node.md) | [Commands](../../DEPLOYMENT.md#%EF%B8%8F-light-node-deployment-30-min-setup) |
+| **Full Node Operator** | 2-4 hours | Advanced | [Full Node](./full-node.md) | [Commands](../../DEPLOYMENT.md#-full-node-deployment-2-4-hour-setup) |
+| **Credential Issuer** | 1-2 hours | Intermediate | [Service Provider](./service-provider.md) | [Commands](../../DEPLOYMENT.md#-service-provider-issuer-deployment) |
+| **App Developer** | 30 minutes | Programming | [Developer Guide](./developer.md) | [Commands](../../DEPLOYMENT.md#-development-environment) |
+
+### 📝 **Need Copy-Paste Commands?**
+**→ See [DEPLOYMENT.md](../../DEPLOYMENT.md)** for ready-to-run commands for all scenarios
 
 ## 💡 Architecture Overview
 
