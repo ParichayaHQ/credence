@@ -293,7 +293,7 @@ export class WalletService {
 
       const contentType = response.headers.get('content-type');
       if (contentType && contentType.includes('application/json')) {
-        return await response.json();
+        return await response.json() as T;
       } else {
         return await response.text() as T;
       }

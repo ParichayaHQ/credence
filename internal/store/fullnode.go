@@ -47,19 +47,26 @@ func NewFullNode(config *Config) (*FullNode, error) {
 
 // initializeStorageBackends sets up the storage backends based on configuration
 func (fn *FullNode) initializeStorageBackends() error {
-	// Initialize RocksDB for structured data
+	// Try to initialize RocksDB for structured data first
 	rocksdb, err := NewRocksDBStore(fn.config)
 	if err != nil {
-		// If RocksDB is not available, we can't store events/checkpoints/status
-		// In a real deployment, you'd want alternative storage backends
-		return fmt.Errorf("failed to initialize RocksDB (try building with -tags rocksdb): %w", err)
+		// Fall back to SQLite for development/environments without RocksDB
+		sqliteStore, sqliteErr := NewSQLiteStore(fn.config)
+		if sqliteErr != nil {
+			return fmt.Errorf("failed to initialize both RocksDB and SQLite backends - RocksDB: %v, SQLite: %v", err, sqliteErr)
+		}
+		
+		// Use SQLite for events, checkpoints, and status lists
+		fn.eventStore = sqliteStore
+		fn.checkpointStore = sqliteStore
+		fn.statusStore = sqliteStore
+	} else {
+		fn.rocksdb = rocksdb
+		// Use RocksDB for events, checkpoints, and status lists
+		fn.eventStore = rocksdb
+		fn.checkpointStore = rocksdb
+		fn.statusStore = rocksdb
 	}
-	fn.rocksdb = rocksdb
-	
-	// Use RocksDB for events, checkpoints, and status lists
-	fn.eventStore = rocksdb
-	fn.checkpointStore = rocksdb
-	fn.statusStore = rocksdb
 	
 	// Initialize blob storage backend
 	switch fn.config.BlobStore.Backend {
