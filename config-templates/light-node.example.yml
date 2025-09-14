@@ -1,0 +1,53 @@
+# Light Node Configuration Template
+# Copy to ./config/light-node.yml and customize for your deployment
+
+# Network Configuration
+network:
+  listen_addresses:
+    - "/ip4/0.0.0.0/tcp/4001"
+  external_address: "/ip4/YOUR_EXTERNAL_IP/tcp/4001"  # Replace with your public IP
+  bootstrap_peers:
+    - "/dns4/seed1.credence.network/tcp/4001/p2p/12D3KooWABC..."  # Will be updated with real seeds
+    - "/dns4/seed2.credence.network/tcp/4001/p2p/12D3KooWDEF..."
+    - "/dns4/seed3.credence.network/tcp/4001/p2p/12D3KooWGHI..."
+  max_peers: 100
+  discovery:
+    mdns: true
+    dht: true
+  
+# Storage Configuration (Light Mode)
+storage:
+  retention_days: 30        # Keep data for 30 days
+  max_storage_gb: 10        # Limit storage usage
+  prune_interval: "24h"     # Check for old data daily
+  backup_enabled: false     # Disable backup for light nodes
+  
+# P2P Gateway API
+p2p_api:
+  listen: "0.0.0.0:8080"
+  cors_origins: ["*"]
+  rate_limit: "100/minute"
+  
+# Full Node API (Light Mode)
+fullnode_api:
+  listen: "0.0.0.0:8081"
+  cors_origins: ["*"] 
+  rate_limit: "200/minute"
+  max_events_per_query: 1000  # Lower limit for light nodes
+  
+# Resource Limits
+resources:
+  max_memory: "2GB"
+  max_cpu: "1.0"
+  max_connections: 100
+  
+# Logging
+logging:
+  level: "info"
+  format: "json"
+  output: "stdout"
+  
+# Rewards & Economics
+rewards:
+  node_operator_address: ""  # Your wallet address for rewards
+  participation_level: "light"

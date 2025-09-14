@@ -1,0 +1,247 @@
+# Local development stack for Credence network
+version: '3.8'
+
+services:
+  # P2P Gateway - Network communication
+  p2p-gateway:
+    build:
+      context: .
+      dockerfile: services/p2p-gateway/Dockerfile
+    image: credence/p2p-gateway:dev
+    ports:
+      - "4001:4001"  # P2P port
+      - "8080:8080"  # API port
+    volumes:
+      - ./dev-config:/config
+      - p2p-data:/data
+    environment:
+      - LOG_LEVEL=debug
+      - CONFIG_PATH=/config/p2p-gateway.yml
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 3s
+      start_period: 5s
+      retries: 3
+
+  # Full Node - Data storage and retrieval
+  fullnode:
+    build:
+      context: .
+      dockerfile: services/fullnode/Dockerfile
+    image: credence/fullnode:dev
+    ports:
+      - "8081:8081"
+    volumes:
+      - ./dev-config:/config
+      - fullnode-data:/data
+      - shared-data:/shared-data
+    environment:
+      - LOG_LEVEL=debug
+      - CONFIG_PATH=/config/fullnode.yml
+      - MODE=full
+      - P2P_ENDPOINT=http://p2p-gateway:8080
+    depends_on:
+      p2p-gateway:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8081/health"]
+      interval: 30s
+      timeout: 3s
+      start_period: 10s
+      retries: 3
+
+  # Scorer - Trust score computation
+  scorer:
+    build:
+      context: .
+      dockerfile: services/scorer/Dockerfile
+    image: credence/scorer:dev
+    ports:
+      - "8082:8082"
+    volumes:
+      - ./dev-config:/config
+      - scorer-data:/data
+    environment:
+      - LOG_LEVEL=debug
+      - CONFIG_PATH=/config/scorer.yml
+      - REDIS_URL=redis://redis:6379
+      - ALGORITHM_VERSION=v2.1
+      - UPDATE_INTERVAL=30s  # Faster updates for dev
+    depends_on:
+      fullnode:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8082/health"]
+      interval: 30s
+      timeout: 3s
+      start_period: 10s
+      retries: 3
+
+  # Log Node - Cryptographic audit trail
+  lognode:
+    build:
+      context: .
+      dockerfile: services/lognode/Dockerfile
+    image: credence/lognode:dev
+    ports:
+      - "8083:8083"
+    volumes:
+      - ./dev-config:/config
+      - lognode-data:/data
+    environment:
+      - LOG_LEVEL=debug
+      - CONFIG_PATH=/config/lognode.yml
+      - DATABASE_URL=postgres://credence:devpassword@postgres/trillian
+      - SIGNING_FREQUENCY=30s  # Faster signing for dev
+    depends_on:
+      fullnode:
+        condition: service_healthy
+      postgres:
+        condition: service_started
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8083/health"]
+      interval: 30s
+      timeout: 3s
+      start_period: 10s
+      retries: 3
+
+  # Wallet Service - Key management and credentials
+  walletd:
+    build:
+      context: .
+      dockerfile: services/walletd/Dockerfile
+    image: credence/walletd:dev
+    ports:
+      - "8084:8084"
+    volumes:
+      - ./dev-config:/config
+      - walletd-data:/data
+    environment:
+      - LOG_LEVEL=debug
+      - CONFIG_PATH=/config/walletd.yml
+      - STORAGE_TYPE=sqlite
+    depends_on:
+      p2p-gateway:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8084/health"]
+      interval: 30s
+      timeout: 3s
+      start_period: 5s
+      retries: 3
+
+  # Checkpointor - Consensus and governance
+  checkpointor:
+    build:
+      context: .
+      dockerfile: services/checkpointor/Dockerfile
+    image: credence/checkpointor:dev
+    ports:
+      - "8085:8085"
+    volumes:
+      - ./dev-config:/config
+      - checkpointor-data:/data
+    environment:
+      - LOG_LEVEL=debug
+      - CONFIG_PATH=/config/checkpointor.yml
+      - BLS_PRIVATE_KEY_PATH=/config/keys/bls.key
+    depends_on:
+      fullnode:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8085/health"]
+      interval: 30s
+      timeout: 3s
+      start_period: 10s
+      retries: 3
+
+  # Supporting Services
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+
+  postgres:
+    image: postgres:15-alpine
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./dev-config/postgres-init.sql:/docker-entrypoint-initdb.d/init.sql
+    environment:
+      - POSTGRES_DB=trillian
+      - POSTGRES_USER=credence
+      - POSTGRES_PASSWORD=devpassword
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=C --lc-ctype=C
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U credence -d trillian"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Development Tools
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./dev-config/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=7d'
+      - '--web.enable-lifecycle'
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./dev-config/grafana:/etc/grafana/provisioning
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_INSTALL_PLUGINS=redis-datasource
+    restart: unless-stopped
+
+volumes:
+  p2p-data:
+  fullnode-data:
+  scorer-data:
+  lognode-data:
+  walletd-data:
+  checkpointor-data:
+  shared-data:
+  redis-data:
+  postgres-data:
+  prometheus-data:
+  grafana-data:
+
+networks:
+  default:
+    name: credence-dev
+    driver: bridge

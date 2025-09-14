@@ -1,0 +1,115 @@
+# Full Node Configuration Template
+# Copy to ./config/full-node.yml and customize for your deployment
+
+# Node Identity
+identity:
+  private_key_path: "/config/keys/node.key"   # Generate with scripts/generate-identity.sh
+  public_key_path: "/config/keys/node.pub"
+  node_id: ""  # Will be generated from keys
+
+# Network Configuration
+network:
+  listen_addresses:
+    - "/ip4/0.0.0.0/tcp/4001"
+  external_address: "/ip4/YOUR_EXTERNAL_IP/tcp/4001"  # Replace with your public IP
+  bootstrap_peers:
+    - "/dns4/seed1.credence.network/tcp/4001/p2p/12D3KooWABC..."
+    - "/dns4/seed2.credence.network/tcp/4001/p2p/12D3KooWDEF..."
+    - "/dns4/seed3.credence.network/tcp/4001/p2p/12D3KooWGHI..."
+  max_peers: 500
+  discovery:
+    mdns: true
+    dht: true
+    advertise_services: true
+
+# Storage Configuration (Full Mode)
+storage:
+  data_dir: "/data"
+  retention_policy: "full"      # Keep all historical data
+  backup_enabled: true
+  backup_interval: "6h"
+  backup_retention: "30d"
+  compression_enabled: true
+  
+# Services Configuration
+services:
+  p2p_gateway:
+    enabled: true
+    port: 4001
+    api_port: 8080
+    
+  fullnode:
+    enabled: true
+    port: 8081
+    max_events_per_query: 10000
+    cache_size: "8GB"
+    
+  scorer:
+    enabled: true  
+    port: 8082
+    algorithm_version: "v2.1"
+    update_interval: "5m"
+    max_graph_depth: 6
+    anti_collusion_enabled: true
+    
+  lognode:
+    enabled: true
+    port: 8083
+    tree_type: "merkle"
+    signing_frequency: "1m"
+    batch_size: 1000
+    
+  checkpointor:
+    enabled: true              # Auto-enabled if selected as committee member
+    port: 8085
+    bls_private_key_path: "/config/keys/bls.key"  # Generate separately
+    committee_participation: true
+
+# Resource Limits
+resources:
+  max_memory: "12GB"
+  max_cpu: "6.0" 
+  max_storage: "400GB"
+  
+# Monitoring
+monitoring:
+  prometheus_enabled: true
+  prometheus_port: 9090
+  metrics_retention: "30d"
+  health_check_interval: "30s"
+  
+# Logging
+logging:
+  level: "info"
+  format: "json"
+  output: "stdout"
+  audit_enabled: true
+  
+# Security
+security:
+  tls_enabled: true
+  cert_path: "/config/ssl/cert.pem"
+  key_path: "/config/ssl/key.pem"
+  api_key_required: false  # Set to true for production
+  
+# Rewards & Economics  
+rewards:
+  node_operator_address: ""  # Your wallet address for rewards
+  participation_level: "full"
+  services_offered: ["p2p", "storage", "scoring", "logging", "consensus"]
+  
+# Rate Limiting
+rate_limiting:
+  enabled: true
+  requests_per_minute: 1000
+  burst_size: 100
+  whitelist_ips: []
+  
+# Backup Configuration
+backup:
+  enabled: true
+  s3_bucket: ""          # Optional: S3 bucket for remote backup
+  s3_region: ""
+  s3_access_key: ""
+  s3_secret_key: ""
+  local_retention: "7d"  # Keep local backups for 7 days
