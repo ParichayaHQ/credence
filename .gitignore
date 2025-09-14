@@ -45,6 +45,18 @@ build/
 dist/
 bin/
 
+# Node.js dependencies and build artifacts
+node_modules/
+package-lock.json
+yarn.lock
+.yarn/
+.pnp.*
+
+# Coverage reports
+coverage/
+*.lcov
+.nyc_output/
+
 # Service binaries (built from cmd/)
 checkpointor
 p2p-gateway

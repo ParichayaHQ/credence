@@ -127,6 +127,9 @@ services:
       - LOG_LEVEL=debug
       - CONFIG_PATH=/config/walletd.yml
       - STORAGE_TYPE=sqlite
+      - API_HOST=0.0.0.0
+      - API_PORT=8084
+    command: ["walletd", "-host", "0.0.0.0", "-port", "8084"]
     depends_on:
       p2p-gateway:
         condition: service_healthy

@@ -14,8 +14,8 @@ export const MAIN_WINDOW_CONFIG = {
 
 // Go service configuration
 export const WALLETD_CONFIG = {
-  port: 8080,
-  host: '127.0.0.1',
+  port: 8084,
+  host: '127.0.0.1', 
   healthCheckInterval: 5000, // ms
   startupTimeout: 30000, // ms
   shutdownTimeout: 10000, // ms

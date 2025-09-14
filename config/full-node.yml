@@ -1,9 +1,9 @@
-# Full Node Configuration Template
-# Copy to ./config/full-node.yml and customize for your deployment
+# Full Node Configuration
+# Configured for local development and testing
 
 # Node Identity
 identity:
-  private_key_path: "/config/keys/node.key"   # Generate with scripts/generate-identity.sh
+  private_key_path: "/config/keys/node.key"
   public_key_path: "/config/keys/node.pub"
   node_id: ""  # Will be generated from keys
 
@@ -11,11 +11,8 @@ identity:
 network:
   listen_addresses:
     - "/ip4/0.0.0.0/tcp/4001"
-  external_address: "/ip4/127.0.0.1/tcp/4001"  # Use localhost for local testing
-  bootstrap_peers:
-    - "/dns4/seed1.credence.network/tcp/4001/p2p/12D3KooWABC..."
-    - "/dns4/seed2.credence.network/tcp/4001/p2p/12D3KooWDEF..."
-    - "/dns4/seed3.credence.network/tcp/4001/p2p/12D3KooWGHI..."
+  external_address: "/ip4/127.0.0.1/tcp/4001"
+  bootstrap_peers: []  # Empty for local development
   max_peers: 500
   discovery:
     mdns: true
@@ -25,7 +22,7 @@ network:
 # Storage Configuration (Full Mode)
 storage:
   data_dir: "/data"
-  retention_policy: "full"      # Keep all historical data
+  retention_policy: "full"
   backup_enabled: true
   backup_interval: "6h"
   backup_retention: "30d"
@@ -60,9 +57,9 @@ services:
     batch_size: 1000
     
   checkpointor:
-    enabled: true              # Auto-enabled if selected as committee member
+    enabled: true
     port: 8085
-    bls_private_key_path: "/config/keys/bls.key"  # Generate separately
+    bls_private_key_path: "/config/keys/bls.key"
     committee_participation: true
 
 # Resource Limits
@@ -90,7 +87,7 @@ security:
   tls_enabled: false  # Disabled for local testing
   cert_path: "/config/ssl/cert.pem"
   key_path: "/config/ssl/key.pem"
-  api_key_required: false  # Set to true for production
+  api_key_required: false
   
 # Rewards & Economics  
 rewards:
@@ -108,8 +105,4 @@ rate_limiting:
 # Backup Configuration
 backup:
   enabled: true
-  s3_bucket: ""          # Optional: S3 bucket for remote backup
-  s3_region: ""
-  s3_access_key: ""
-  s3_secret_key: ""
-  local_retention: "7d"  # Keep local backups for 7 days
+  local_retention: "7d"

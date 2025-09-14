@@ -1,0 +1,113 @@
+# Jekyll configuration for GitHub Pages
+title: "Credence Documentation"
+description: "Decentralized Trust Networks - Documentation and Deployment Guides"
+url: "https://parichayahq.github.io"
+baseurl: "/credence"
+
+# GitHub Pages settings
+remote_theme: pages-themes/minimal@v0.2.0
+plugins:
+- jekyll-remote-theme
+- jekyll-sitemap
+- jekyll-feed
+- jekyll-seo-tag
+
+# Markdown settings
+markdown: kramdown
+highlighter: rouge
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge
+
+# Collections for organized content
+collections:
+  guides:
+    output: true
+    permalink: /:collection/:name/
+  designs:
+    output: true
+    permalink: /:collection/:name/
+  project-management:
+    output: true
+    permalink: /:collection/:name/
+
+# Navigation structure
+navigation:
+  - title: "Home"
+    url: "/"
+  - title: "Guides"
+    url: "/guides/"
+    subnav:
+      - title: "End User Wallet"
+        url: "/guides/end-user-wallet/"
+      - title: "Light Node"
+        url: "/guides/light-node/"
+      - title: "Full Node"
+        url: "/guides/full-node/"
+      - title: "Service Provider"
+        url: "/guides/service-provider/"
+      - title: "Developer"
+        url: "/guides/developer/"
+  - title: "Architecture"
+    url: "/designs/"
+    subnav:
+      - title: "System Architecture"
+        url: "/designs/architecture/"
+      - title: "Component Design"
+        url: "/designs/components/"
+  - title: "Project Management"
+    url: "/project-management/"
+
+# Default layouts
+defaults:
+  - scope:
+      path: ""
+      type: "pages"
+    values:
+      layout: "default"
+  - scope:
+      path: ""
+      type: "guides"
+    values:
+      layout: "guide"
+      collection: "guides"
+  - scope:
+      path: ""
+      type: "designs"
+    values:
+      layout: "design"
+      collection: "designs"
+  - scope:
+      path: ""
+      type: "project-management"
+    values:
+      layout: "default"
+      collection: "project-management"
+
+# GitHub repository info
+github:
+  repository_url: "https://github.com/ParichayaHQ/credence"
+  repository_name: "ParichayaHQ/credence"
+
+# SEO settings
+author: "ParichayaHQ"
+twitter:
+  username: "credencenetwork"
+logo: "/assets/img/credence-logo.png"
+
+# Exclude from processing
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - README.md
+  - vendor/
+  - .sass-cache/
+  - .jekyll-cache/
+  - gemfiles/
+
+# Include dotfiles
+include:
+  - _pages
+  - _includes
+  - _layouts
+  - _sass

@@ -1,0 +1,55 @@
+---
+layout: default
+---
+
+<div class="guide-header">
+  <nav class="breadcrumb">
+    <a href="{{ '/' | relative_url }}">Home</a> 
+    <span>/</span> 
+    <a href="{{ '/guides/' | relative_url }}">Guides</a> 
+    <span>/</span> 
+    <span>{{ page.title }}</span>
+  </nav>
+  
+  {% if page.status %}
+  <div class="status-banner {{ page.status }}">
+    <strong>Status:</strong> {{ page.status | capitalize }}
+    {% if page.status == 'draft' %}
+    - This guide is in development
+    {% elsif page.status == 'beta' %}
+    - This guide covers features in beta
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+
+<div class="guide-content">
+  {{ content }}
+</div>
+
+{% if page.collection == 'guides' %}
+<div class="guide-navigation">
+  <h3>Other Guides</h3>
+  <ul>
+    {% for guide in site.guides %}
+      {% if guide.url != page.url %}
+      <li><a href="{{ guide.url | relative_url }}">{{ guide.title }}</a></li>
+      {% endif %}
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}
+
+<div class="page-footer">
+  <p>
+    <a href="{{ site.github.repository_url }}/edit/main/docs/{{ page.path }}">
+      📝 Edit this page on GitHub
+    </a>
+  </p>
+  
+  {% if page.date %}
+  <p class="last-updated">
+    Last updated: {{ page.date | date: "%B %d, %Y" }}
+  </p>
+  {% endif %}
+</div>

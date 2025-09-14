@@ -1,0 +1,19 @@
+<nav class="site-navigation">
+  <ul class="nav-list">
+    {% for item in site.navigation %}
+      <li class="nav-item{% if page.url == item.url %} active{% endif %}">
+        <a href="{{ item.url | relative_url }}" class="nav-link">{{ item.title }}</a>
+        
+        {% if item.subnav %}
+        <ul class="subnav">
+          {% for subitem in item.subnav %}
+            <li class="subnav-item{% if page.url == subitem.url %} active{% endif %}">
+              <a href="{{ subitem.url | relative_url }}" class="subnav-link">{{ subitem.title }}</a>
+            </li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+</nav>
