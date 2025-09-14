@@ -221,6 +221,12 @@ type VerificationOptions struct {
 	// Whether to check credential status
 	CheckStatus bool `json:"checkStatus,omitempty"`
 	
+	// Whether to validate credential schema
+	ValidateSchema bool `json:"validateSchema,omitempty"`
+	
+	// Trust framework to use for policy-based verification
+	TrustFramework string `json:"trustFramework,omitempty"`
+	
 	// Additional verification parameters
 	Params map[string]interface{} `json:"params,omitempty"`
 }

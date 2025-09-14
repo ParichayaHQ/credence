@@ -1,0 +1,136 @@
+{
+  "name": "credence-desktop",
+  "version": "0.1.0",
+  "description": "Credence Desktop Wallet - Decentralized Identity and Trust Score Management",
+  "main": "build/main/index.js",
+  "homepage": "https://credence.network",
+  "author": {
+    "name": "ParichayaHQ",
+    "email": "team@parichaya.co"
+  },
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm run build:main:watch\" \"npm run build:preload:watch\" \"npm run build:renderer:watch\" \"wait-on build/main/index.js build/preload/wallet-api.js && electron .\"",
+    "build": "npm run build:main && npm run build:preload && npm run build:renderer",
+    "build:main": "webpack --config webpack.main.config.js",
+    "build:main:watch": "webpack --config webpack.main.config.js --watch",
+    "build:preload": "webpack --config webpack.preload.config.js",
+    "build:preload:watch": "webpack --config webpack.preload.config.js --watch",
+    "build:renderer": "webpack --config webpack.renderer.config.js",
+    "build:renderer:watch": "webpack --config webpack.renderer.config.js --watch --mode=development",
+    "build:go": "node scripts/build-go.js",
+    "build:all": "npm run build:go && npm run build",
+    "start": "electron .",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:e2e": "playwright test",
+    "lint": "eslint src --ext .ts,.tsx",
+    "lint:fix": "eslint src --ext .ts,.tsx --fix",
+    "type-check": "tsc --noEmit",
+    "dist": "npm run build:all && electron-builder",
+    "dist:all": "npm run build:all && electron-builder --publish=never --win --mac --linux",
+    "clean": "rimraf build dist"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.87.4",
+    "@tanstack/react-query-devtools": "^5.87.4",
+    "electron-updater": "^6.1.4"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.1.3",
+    "@testing-library/react": "^14.0.0",
+    "@testing-library/user-event": "^14.4.3",
+    "@types/jest": "^29.5.5",
+    "@types/node": "^20.6.3",
+    "@types/react": "^18.2.22",
+    "@types/react-dom": "^18.2.7",
+    "@typescript-eslint/eslint-plugin": "^6.7.2",
+    "@typescript-eslint/parser": "^6.7.2",
+    "concurrently": "^8.2.1",
+    "css-loader": "^6.8.1",
+    "electron": "^26.2.1",
+    "electron-builder": "^24.6.4",
+    "eslint": "^8.49.0",
+    "eslint-plugin-react": "^7.33.2",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "html-webpack-plugin": "^5.6.4",
+    "identity-obj-proxy": "^3.0.0",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "playwright": "^1.38.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.16.0",
+    "rimraf": "^5.0.5",
+    "style-loader": "^3.3.3",
+    "ts-jest": "^29.1.1",
+    "ts-loader": "^9.4.4",
+    "typescript": "^5.2.2",
+    "wait-on": "^7.0.1",
+    "webpack": "^5.88.2",
+    "webpack-cli": "^5.1.4"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "build": {
+    "appId": "network.credence.wallet",
+    "productName": "Credence Wallet",
+    "directories": {
+      "output": "dist",
+      "buildResources": "assets"
+    },
+    "files": [
+      "build/**/*",
+      "assets/bin/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "assets/bin",
+        "to": "bin"
+      }
+    ],
+    "mac": {
+      "category": "public.app-category.finance",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ],
+      "icon": "assets/icons/icon.icns"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "assets/icons/icon.ico"
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "assets/icons/icon.png",
+      "category": "Office"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  }
+}
