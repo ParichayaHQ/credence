@@ -58,14 +58,21 @@ coverage/
 .nyc_output/
 
 # Service binaries (built from cmd/)
-checkpointor
-p2p-gateway
-fullnode
-lognode
-scorer
-walletd
-issuer
-rules-registry
+# The leading slash is to ignore just the binaries created
+# in the root directory but not something like:
+# cmd/walletd/main.go
+# cmd/walletd/server/handlers.go
+# cmd/walletd/server/server.go
+# services/walletd/Dockerfile
+/checkpointor
+/p2p-gateway
+/fullnode
+/lognode
+/scorer
+/walletd
+/issuer
+/rules-registry
+
 
 # Test coverage
 coverage.txt
