@@ -1,4 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron';
+import { IPC_CHANNELS } from '@shared/constants';
 
 // Define the API interface that will be exposed to the renderer
 interface WalletAPI {
@@ -82,10 +83,30 @@ interface WalletAPI {
 // Implementation of the API that calls the main process via IPC
 const walletAPI: WalletAPI = {
   system: {
-    getNetworkStatus: () => ipcRenderer.invoke('system:getNetworkStatus'),
-    lock: (password: string) => ipcRenderer.invoke('system:lock', password),
-    unlock: (password: string) => ipcRenderer.invoke('system:unlock', password),
-    checkLockStatus: () => ipcRenderer.invoke('system:checkLockStatus'),
+    getNetworkStatus: () => ipcRenderer.invoke(IPC_CHANNELS.GET_NETWORK_STATUS, { 
+      id: Date.now().toString(), 
+      method: 'GET_NETWORK_STATUS', 
+      params: {}, 
+      timestamp: Date.now() 
+    }),
+    lock: (password: string) => ipcRenderer.invoke(IPC_CHANNELS.LOCK_WALLET, { 
+      id: Date.now().toString(), 
+      method: 'LOCK_WALLET', 
+      params: { password }, 
+      timestamp: Date.now() 
+    }),
+    unlock: (password: string) => ipcRenderer.invoke(IPC_CHANNELS.UNLOCK_WALLET, { 
+      id: Date.now().toString(), 
+      method: 'UNLOCK_WALLET', 
+      params: { password }, 
+      timestamp: Date.now() 
+    }),
+    checkLockStatus: () => ipcRenderer.invoke(IPC_CHANNELS.CHECK_LOCK_STATUS, { 
+      id: Date.now().toString(), 
+      method: 'CHECK_LOCK_STATUS', 
+      params: {}, 
+      timestamp: Date.now() 
+    }),
   },
 
   notifications: {

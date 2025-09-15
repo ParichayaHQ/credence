@@ -285,7 +285,7 @@ export function GlobalSearch({
         .sort((a, b) => b.score - a.score)
         .slice(0, maxResults);
     };
-  }, [keys, dids, credentials, events, trustScores, navigate, onClose, maxResults]);
+  }, [keys, dids, credentials, events, trustScores, maxResults]);
 
   // Update results when query changes
   useEffect(() => {

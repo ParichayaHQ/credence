@@ -15,10 +15,17 @@ import (
 	"github.com/ParichayaHQ/credence/internal/store"
 )
 
+func getEnvOrDefault(key, defaultValue string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+	return defaultValue
+}
+
 func main() {
 	var (
-		port     = flag.Int("port", 8080, "HTTP server port")
-		dbPath   = flag.String("db", "./scorer-data", "Database path")
+		port     = flag.Int("port", 8082, "HTTP server port")
+		dbPath   = flag.String("db", getEnvOrDefault("DATA_DIR", "./scorer-data"), "Database path")
 	)
 	flag.Parse()
 

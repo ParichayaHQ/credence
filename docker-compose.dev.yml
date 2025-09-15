@@ -42,6 +42,9 @@ services:
       - CONFIG_PATH=/config/fullnode.yml
       - MODE=full
       - P2P_ENDPOINT=http://p2p-gateway:8080
+      - FULLNODE_PORT=8081
+      - ROCKSDB_PATH=/data/rocksdb
+      - BLOB_PATH=/data/blobs
     depends_on:
       p2p-gateway:
         condition: service_healthy
@@ -70,6 +73,7 @@ services:
       - REDIS_URL=redis://redis:6379
       - ALGORITHM_VERSION=v2.1
       - UPDATE_INTERVAL=30s  # Faster updates for dev
+      - DATA_DIR=/data
     depends_on:
       fullnode:
         condition: service_healthy
@@ -90,7 +94,7 @@ services:
       dockerfile: services/lognode/Dockerfile
     image: credence/lognode:dev
     ports:
-      - "8083:8083"
+      - "8083:8081"
     volumes:
       - ./dev-config:/config
       - lognode-data:/data
@@ -106,7 +110,7 @@ services:
         condition: service_started
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8083/health"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8081/health"]
       interval: 30s
       timeout: 3s
       start_period: 10s
@@ -135,7 +139,7 @@ services:
         condition: service_healthy
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8084/health"]
+      test: ["CMD", "nc", "-z", "localhost", "8084"]
       interval: 30s
       timeout: 3s
       start_period: 5s
@@ -148,7 +152,7 @@ services:
       dockerfile: services/checkpointor/Dockerfile
     image: credence/checkpointor:dev
     ports:
-      - "8085:8085"
+      - "8085:8083"
     volumes:
       - ./dev-config:/config
       - checkpointor-data:/data
@@ -161,7 +165,7 @@ services:
         condition: service_healthy
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8085/health"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8083/health"]
       interval: 30s
       timeout: 3s
       start_period: 10s
